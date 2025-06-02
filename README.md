@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project analyzes the relationship between hate crimes and the date, time, and reason it takes place
+This project analyzes the relationship between hate crimes and the date, time, and reason it takes place.
 
 
 ## File Structure
