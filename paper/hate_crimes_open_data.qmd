@@ -1,0 +1,661 @@
+---
+title: "The Irreparable Golden Rule: How Hate Crimes Have Risen Over the Past Six Years Across Toronto"
+author: Ana Elisa Lopez-Miranda
+thanks: "Code and data are available at: https://github.com/AnaElisaLopezMiranda/hatecrimes_opentorontodata."
+date: today
+date-format: long
+abstract: "This paper looks at data surrounding reported hate crimes in Toronto's 158 Neighbourhoods over the past six years. The data visualization shows that hate crimes are occurring at an increasing rate. The people targeted are the Jewish community for their religion, Chinese individuals for their ethnicity, Black individuals for their race, gay individuals for their sexual orientation, and transgender women for their gender. Government officials should become more concerned over the increasing rate of hate crimes and take actions to protect the communities being targeted."
+execute:
+    echo: false
+
+format: 
+    pdf:
+        df-print: kable
+        include-in-header:
+            text: |
+                \usepackage{pdflscape}
+        fig-pos: "H"
+number-sections: true
+bibliography: references.bib
+---
+
+# Introduction
+
+The phrase 'hate crimes' was coined in the 1980's to describe incidents happening to African-Americans, Asians, and Jews [@EmbracingMulticulturalism]. A hate crime is a criminal offence committed against a person or property motivated in whole or in part by bias, prejudice or hate based on race, national, or ethnic origin, language, colour, religion, sex, age, mental or physical disability, sexual orientation or gender identity or expression of any similar factors [@OpenDataPortal]. There was a steep increase in usage of the phrase in books and articles from the 1980s until a peak in 2004. The usage has been steadily decreasing (except for a brief increase in 2015) till now. However, contrary to this metric, according to data from Open Data Toronto, there has been a steady increase in reported hate crimes over the past 6 years (2018-2024). The main question this poses is: who, why, and where. 
+
+The data shows that the group most targeted for physical differences is Black individuals. Those most targeted for cultural reasons are Chinese individuals. The group most targeted for religious reasons is the Jewish community. The group most targeted based on sexual orientation is gay individuals. The group most targeted based on gender identity is transgender women. The most common motivation for hate crimes is religious bias. The area with the highest hate crime rate is Yonge-Bay Corridor. The most common location for attacks is on streets, roadways, or highways.
+
+This paper will first give summary statistics ([@sec-data]), exploratory analysis ([@sec-results]), and then conclude with a discussion ([@sec-discussion]).
+
+
+# Data {#sec-data}
+
+Data is provided by Toronto Hate Crime Unit and is obtained from the OpenData Toronto Portal [@OpenDataPortal]. It consists of reported hate crimes from 2018-2024. There is no missing data. 
+
+In this paper, the programming language Python was used [@numpy]. Libraries that were used include numpy [@numpy], matplotlib [@matplotlib], pandas [@pandas], and polars [@polars].
+
+The following table illustrates the data used in the paper. The omitted entries were: `_Id`, `OCCURRENCE_YEAR`, `OCCURRENCE_TIME`, `REPORTED_YEAR`, `REPORTED_TIME`, `HOOD_158`, `NEIGHBOURHOOD_140`, `HOOD_140`. `_Id` was omitted because it contained individual Id's for each occurrence. `OCCURRENCE_YEAR` was omitted for its redundancy. `OCCURRENCE_TIME` was omitted for its lack of usability. `REPORTED_YEAR` was omitted for its redundancy. `REPORTED_TIME` was omitted for its lack of usability. `HOOD_158` was omitted for its redundancy. `NEIGHBOURHOOD_140` was omitted since it is the outdated neighbourhoods of Toronto. `HOOD_140` was omitted for the same reason as above. 
+
+The entries are self-reported. If there was any overlap in entries (e.g. '2Slgbt+' and '2SLGBT+'), they were combined into one. However, some entries contained several categories (e.g. Christian Orthodox, Jewish), these entries were kept as given as mixed communities may face discrimination precisely because they are mixed. 
+
+Further, some offences can be categorized by multiple biases. However, when compared to the number of offences caused by a single bias, it was found that offences with multiple biases make up 1% of total hate crimes. Thus, this was not focused on in the paper. 
+
+```{python}
+#| tbl-cap: "Hate Crime Data Dictionary"
+#| tbl-column-widths: [0.2, 0.6, 0.2]
+#| results: 'asis'
+
+import pandas as pd
+
+data = [
+    ["OCCURRENCE_DATE", "Date Offence Occurred."],
+    ["REPORTED_DATE", "Date Offence was Reported."],
+    ["DIVISION", "Police Division where Offence Occurred."],
+    ["LOCATION_TYPE", "Location Type of the Offence."],
+    ["AGE_BIAS", "A Hate Crime committed because of age."],
+    ["MENTAL_OR_PHYSICAL_DISABILITY", "Crime committed because of disability."],
+    ["RACE_BIAS", "Crime committed because of race."],
+    ["ETHNICITY_BIAS", "Crime committed because of ethnicity."],
+    ["LANGUAGE_BIAS", "Crime committed because of language."],
+    ["RELIGION_BIAS", "Crime committed because of religion."],
+    ["SEXUAL_ORIENTATION_BIAS", "Crime committed because of sexual orientation."],
+    ["GENDER_BIAS", "Crime committed because of gender."],
+    ["PRIMARY_OFFENCE", "The Offence committed."],
+    ["NEIGHBOURHOOD_158", "One of Toronto's 158 neighbourhoods."],
+    ["ARREST_MADE", "When a charge is laid or recommended."]
+]
+
+df = pd.DataFrame(data, columns=["Field Name", "Description"])
+df
+```
+
+
+# Results {#sec-results}
+
+```{python}
+#| label: tbl-yearly_count_preview
+#| tbl-cap: "Count of Bias Type"
+
+#set up
+import polars as pl
+import matplotlib.pyplot as plt
+pl.Config.set_tbl_hide_column_data_types(True)  
+
+#reading in & reformatting
+raw_data = pl.read_csv("bias_counts_summary.csv")
+
+#creating table
+raw_data
+```
+@tbl-yearly_count_preview shows that hate crimes are most often motivated by religious reasons. This is followed by occurring for racial reasons. 
+
+```{python}
+#| label: fig-count_chart
+#| fig-cap: "Count of Bias Type"
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("bias_counts_summary.csv")
+
+total = df["Count"].sum()
+
+
+# Plot
+plt.figure(figsize=(14, 8))
+bars = plt.bar(df["Bias_Type"], df["Count"], color="orange")
+plt.xlabel("Bias Type")
+plt.ylabel("Count")
+plt.title("Bias Type by Count")
+plt.xticks(rotation=45, ha="right")
+
+# Add percentage
+bars = plt.bar(df["Bias_Type"], df["Count"], color="orange")
+for bar, count in zip(bars, df["Count"]):
+    height = bar.get_height()
+    percent = (count / total) * 100
+    plt.text(
+        bar.get_x() + bar.get_width() / 2, 
+        height,                         
+        f"{percent:.1f}%",              
+        ha="center", va="bottom", fontsize=10
+    )
+
+plt.tight_layout()
+plt.show()
+
+```
+@fig-count_chart visually shows the different biases and how they compare to each other. Note that there was no occurrence of a hate crime based on the bias of age between 2018-2024.
+
+The following tables will show what makes up each individual bias.
+```{python}
+#| label: tbl-yearly_count__gender_preview
+#| tbl-cap: "Count for Gender Bias"
+#| tbl-column-widths: [0.5, 0.5]
+#| tbl-width: 2.0
+
+
+#set up
+import polars as pl
+import matplotlib.pyplot as plt
+pl.Config.set_tbl_hide_column_data_types(True)  
+pl.Config.set_fmt_str_lengths(None)
+
+#reading in & reformatting
+raw_data = pl.read_csv("gender_bias_summary.csv").to_pandas()
+
+
+#creating table
+display(raw_data)
+```
+@tbl-yearly_count__gender_preview shows that 35% of hate crimes committed based on gender reasons are against transgender Women. The second group most affected are Women (30%). 
+
+```{python}
+#| label: tbl-yearly_count__sexual_preview
+#| tbl-cap: "Count for Sexual Orientation Bias"
+
+#set up
+import polars as pl
+import matplotlib.pyplot as plt
+pl.Config.set_tbl_hide_column_data_types(True)  
+pl.Config.set_fmt_str_lengths(None)
+
+#reading in & reformatting
+raw_data = pl.read_csv("sexual_bias_summary.csv")
+
+#creating table
+raw_data
+```
+@tbl-yearly_count__sexual_preview shows that 42% of hate crimes committed on the basis of sexual orientation are against gay individuals. This is followed shortly behind by members of 2SLGBTQ+ (38%).
+```{python}
+#| label: tbl-yearly_count__language_preview
+#| tbl-cap: "Count for Language Bias"
+
+#set up
+import polars as pl
+import matplotlib.pyplot as plt
+pl.Config.set_tbl_hide_column_data_types(True)  
+pl.Config.set_fmt_str_lengths(None)
+pl.Config.set_tbl_rows(None)
+
+#reading in & reformatting
+raw_data = pl.read_csv("language_bias_summary.csv")
+
+#creating table
+raw_data
+```
+@tbl-yearly_count__language_preview shows that only three hate crimes have occurred on the basis of language over the past six years. 
+
+```{python}
+#| label: fig-ethnicity_chart
+#| fig-cap: "Count for Ethnicity Bias"
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load the data
+df = pd.read_csv("ethnicity_bias_summary.csv")
+df = df.sort_values("Count", ascending=False)
+
+total = df["Count"].sum()
+
+
+# Plot
+plt.figure(figsize=(14, 8))
+plt.bar(df["Ethnicity_Offence"], df["Count"], color="orange")
+plt.xlabel("Ethnicity", fontsize = 14)
+plt.ylabel("Count", fontsize = 14)
+plt.title("Ethnicity Bias by Count", fontsize =16)
+plt.xticks(rotation=45, ha="right", fontsize =12)
+
+bars = plt.bar(df["Ethnicity_Offence"], df["Count"], color="orange")
+for bar, count in zip(bars, df["Count"]):
+    height = bar.get_height()
+    percent = (count / total) * 100
+    plt.text(
+        bar.get_x() + bar.get_width() / 2, 
+        height,                         
+        f"{percent:.1f}%",              
+        ha="center", va="bottom", fontsize=14
+    )
+plt.tight_layout()
+plt.show()
+```
+@fig-ethnicity_chart illustrates the frequency of hate crimes on the basis of ethnicity. The top five ethnicities that are targeted in order are Chinese (20.6%), Indian (19.3%), Israeli (13%), Palestinian (10.8%), and Ukrainian (5.8%). 
+
+```{python}
+#| label: fig-race_chart
+#| fig-cap: "Count for Race Bias"
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load the data
+df = pd.read_csv("race_bias_summary.csv")
+df = df.sort_values("Count", ascending=False)
+total = df["Count"].sum()
+
+
+# Plot
+plt.figure(figsize=(14, 8))
+plt.bar(df["Race_Offence"], df["Count"], color="orange")
+plt.xlabel("Race", fontsize=14)
+plt.ylabel("Count", fontsize=14)
+plt.title("Race Bias by Count", fontsize=16)
+plt.xticks(rotation=45, ha="right", fontsize=12)
+bars = plt.bar(df["Race_Offence"], df["Count"], color="orange")
+for bar, count in zip(bars, df["Count"]):
+    height = bar.get_height()
+    percent = (count / total) * 100
+    plt.text(
+        bar.get_x() + bar.get_width() / 2, 
+        height,                         
+        f"{percent:.1f}%",              
+        ha="center", va="bottom", fontsize=14
+    )
+plt.tight_layout()
+plt.show()
+```
+@fig-race_chart illustrates the frequency of hate crimes on the basis of race. The race most targeted are Black individuals (68.5%). The next three in order are East/Southeast Asians (13.1%), South Asians (8.0%), and White individuals (4.4%).
+
+
+```{python}
+#| label: fig-religion_chart
+#| fig-cap: "Count for Religion Bias"
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load the data
+df = pd.read_csv("religion_bias_summary.csv")
+df = df.sort_values("Count", ascending=False)
+total = df["Count"].sum()
+
+
+# Plot
+plt.figure(figsize=(14, 8))
+plt.bar(df["Religion_Offence"], df["Count"], color="orange")
+plt.xlabel("Religion")
+plt.ylabel("Count")
+plt.title("Religion Bias by Count")
+plt.xticks(rotation=45, ha="right")
+bars = plt.bar(df["Religion_Offence"], df["Count"], color="orange")
+for bar, count in zip(bars, df["Count"]):
+    height = bar.get_height()
+    percent = (count / total) * 100
+    plt.text(
+        bar.get_x() + bar.get_width() / 2, 
+        height,                         
+        f"{percent:.1f}%",              
+        ha="center", va="bottom", fontsize=10
+    )
+plt.tight_layout()
+plt.show()
+```
+@fig-religion_chart shows that the religion most targeted is the Jewish community at a 78.1% followed by the Muslim community at 16.2%. 
+
+```{python}
+#| label: tbl-yearly_count__arrest_preview
+#| tbl-cap: "Count for Arrest"
+
+#set up
+import polars as pl
+import matplotlib.pyplot as plt
+pl.Config.set_tbl_hide_column_data_types(True)  
+pl.Config.set_fmt_str_lengths(None)
+
+#reading in & reformatting
+raw_data = pl.read_csv("arrest_summary.csv")
+
+#creating table
+raw_data
+```
+@tbl-yearly_count__arrest_preview shows the proportion of offences that result in an arrest (20%) and the proportion of offences that do not result in an arrest (80%).
+```{python}
+#| label: fig-division_chart
+#| fig-cap: "Count of Arrests per Division"
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load data
+df = pd.read_csv("division_arrest_summary.csv")
+
+pivot_df = df.pivot(index="DIVISION", columns="ARREST_MADE", values="Count").fillna(0)
+
+# Sort divisions
+pivot_df = pivot_df.sort_index()
+
+pivot_df["Total"] = pivot_df["Yes"] + pivot_df["No"]
+
+ind = range(len(pivot_df))
+width = 0.4
+
+plt.figure(figsize=(14, 8))
+
+#Bars
+p1 = plt.bar([i - width/2 +0.05 for i in ind], pivot_df["No"], width, label="Not Arrested", color="red")
+p2 = plt.bar([i + width/2 +0.05 for i in ind], pivot_df["Yes"], width, label="Arrested", color="green")
+
+#percentage
+for i, (no, yes, total) in enumerate(zip(pivot_df["No"], pivot_df["Yes"], pivot_df["Total"])):
+    percent_no = (no / total) * 100 if total > 0 else 0
+    plt.text(i - width/2, no, f"{percent_no:.1f}%", ha="center", va="bottom", fontsize=10)
+    percent_yes = (yes / total) * 100 if total > 0 else 0
+    plt.text(i + width/2, yes, f"{percent_yes:.1f}%", ha="center", va="bottom", fontsize=10)
+
+# Labels
+plt.xlabel("Division")
+plt.ylabel("Count")
+plt.title("Arrest Outcome by Division")
+plt.xticks(ind, pivot_df.index, rotation=45, ha="right")
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+#########################################
+```
+Toronto is split up into 16 police districs over the 158 neighbourhoods. @fig-division_chart shows a distribution of all the divisions where offences occurred. Additionally, the proportion of arrests made for each division is also shown. Green represents an arrest happened and red represents an arrest not happening. In all divisions except for D51, an arrest happened around 20% of the time. The division with the most offenses is D32, followed by D52, D51, and D55. 
+
+```{python}
+#| label: fig-location_chart
+#| fig-cap: "Count per Location"
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load the data
+df = pd.read_csv("location_summary.csv")
+df = df.sort_values("Count", ascending=False)
+total = df["Count"].sum()
+
+
+# Plot
+plt.figure(figsize=(14, 8))
+plt.bar(df["Location_Type"], df["Count"], color="orange")
+plt.xlabel("Location")
+plt.ylabel("Count")
+plt.title("Location by Count")
+plt.xticks(rotation=45, ha="right")
+bars = plt.bar(df["Location_Type"], df["Count"], color="orange")
+for bar, count in zip(bars, df["Count"]):
+    height = bar.get_height()
+    percent = (count / total) * 100
+    plt.text(
+        bar.get_x() + bar.get_width() / 2, 
+        height,                         
+        f"{percent:.1f}%",              
+        ha="center", va="bottom", fontsize=10
+    )
+plt.tight_layout()
+plt.show()
+```
+@fig-location_chart shows the frequency of offences that happen at each location. The location with the most offences is on the streets, roadways, and highway (23%) and the location with the least offences is Government Building (0.2%).
+
+
+```{python}
+#| label: fig-offence_chart
+#| fig-cap: "Count for Primary Offence"
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load the data
+df = pd.read_csv("primary_offence_summary.csv")
+df = df.sort_values("Count", ascending=False).head(18)
+total = df["Count"].sum()
+
+# Plot
+plt.figure(figsize=(14, 8))
+plt.bar(df["Primary_Offence"], df["Count"], color="orange")
+plt.xlabel("Primary Offence")
+plt.ylabel("Count")
+plt.title("Primary Offence by Count")
+plt.xticks(rotation=45, ha="right")
+bars = plt.bar(df["Primary_Offence"], df["Count"], color="orange")
+for bar, count in zip(bars, df["Count"]):
+    height = bar.get_height()
+    percent = (count / total) * 100
+    plt.text(
+        bar.get_x() + bar.get_width() / 2, 
+        height,                         
+        f"{percent:.1f}%",              
+        ha="center", va="bottom", fontsize=10
+    )
+plt.tight_layout()
+plt.show()
+```
+@fig-offence_chart shows that the most frequent offence that accompanies a hate crime is Mischief under $5000 (47.1%) followed by Assault (19.5%). The table only shows the top 18 offences. It omits offenses that occur 0.1% of the time. 
+
+```{python}
+#| label: fig-composition_chart
+#| fig-cap: "Count for Neighbourhoods"
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load the data
+df = pd.read_csv("neighbourhood_summary.csv")
+df = df.sort_values("Count", ascending=False)
+
+# Get top 10 and bottom 10
+df_top10 = df.head(10)
+df_bottom10 = df.tail(10)
+
+df_combined = pd.concat([df_top10, df_bottom10])
+total = df_combined["Count"].sum()  # Only total of displayed data
+
+# Plot
+plt.figure(figsize=(14, 8))
+bars = plt.bar(df_combined["Neighbourhood_158"], df_combined["Count"], color="orange")
+plt.xlabel("Neighbourhood")
+plt.ylabel("Count")
+plt.title("Top 10 and Bottom 10 Neighbourhoods by Count")
+plt.xticks(rotation=45, ha="right")
+
+for bar, count in zip(bars, df_combined["Count"]):
+    height = bar.get_height()
+    percent = (count / total) * 100
+    plt.text(
+        bar.get_x() + bar.get_width() / 2,
+        height,
+        f"{percent:.1f}%",
+        ha="center",
+        va="bottom",
+        fontsize=10
+    )
+
+plt.tight_layout()
+plt.show()
+```
+@fig-composition_chart shows the top 10 neighbourhoods with the most offences and the bottom 10 neighbourhood with the least offences. The neighbourhood with the most offences is Yonge-Bay Corridor. The neighbourhood with the least offences is Parkwoods O'Connor Hills. 
+
+```{python}
+#| label: fig-all_plot
+#| fig-cap: "Hate Crimes Yearly Count"
+
+#set up
+import polars as pl
+import matplotlib.pyplot as plt
+
+# Load the data
+df = pl.read_csv("yearly_counts.csv")
+
+years = df["Year"].to_numpy()
+counts = df["Count"].to_numpy()
+
+# Plot
+plt.figure(figsize=(10, 5))
+plt.plot(years, counts, marker='o', label="Yearly Hate Crimes")
+plt.title("Hate Crimes Occurred")
+plt.xlabel("Year")
+plt.ylabel("Hate Crimes Count")
+plt.grid()
+plt.legend(loc='upper left')
+plt.tight_layout()
+plt.show()
+```
+@fig-all_plot shows the number of offences for each year from 2018-2024. The line illustrate the upward trend of occurrences. 
+```{python}
+#| label: fig-race_plot
+#| fig-cap: "Black Race Bias Yearly Count"
+
+#set up
+import polars as pl
+import matplotlib.pyplot as plt
+
+# Load the data
+df = pl.read_csv("black_race_bias_by_year.csv")
+
+years = df["YEAR"].to_numpy()
+counts = df["Count"].to_numpy()
+
+# Plot
+plt.figure(figsize=(10, 5))
+plt.plot(years, counts, marker='o', label="Black Race Bias By Year")
+plt.title("Hate Crimes Occurred Against Black Individuals")
+plt.xlabel("Year")
+plt.ylabel("Hate Crimes Count")
+plt.grid()
+plt.legend(loc='upper left')
+plt.tight_layout()
+plt.show()
+```
+@fig-race_plot shows the number of offences against Black individuals for each year from 2018-2024. There is a distinct increase in occurrences in 2020.
+```{python}
+#| label: fig-ethnicity_plot
+#| fig-cap: "Chinese Ethnicity Bias Yearly Count"
+
+#set up
+import polars as pl
+import matplotlib.pyplot as plt
+
+# Load the data
+df = pl.read_csv("chinese_ethnicity_bias_by_year.csv")
+
+years = df["YEAR"].to_numpy()
+counts = df["Count"].to_numpy()
+
+# Plot
+plt.figure(figsize=(10, 5))
+plt.plot(years, counts, marker='o', label="Chinese Ethnicity Bias by Year")
+plt.title("Hate Crimes Occurred against Chinese Individuals")
+plt.xlabel("Year")
+plt.ylabel("Hate Crimes Count")
+plt.grid()
+plt.legend(loc='upper left')
+plt.tight_layout()
+plt.show()
+```
+@fig-ethnicity_plot shows the number of offences against Chinese individuals for each year from 2018-2024. There is a distinct increase in occurrences in 2020.
+```{python}
+#| label: fig-jewish_plot
+#| fig-cap: "Jewish Religion Bias Yearly Count"
+
+#set up
+import polars as pl
+import matplotlib.pyplot as plt
+
+# Load the data
+df = pl.read_csv("jewish_religion_bias_by_year.csv")
+
+years = df["YEAR"].to_numpy()
+counts = df["Count"].to_numpy()
+
+# Plot
+plt.figure(figsize=(10, 5))
+plt.plot(years, counts, marker='o', label="Jewish Religion Bias by Year")
+plt.title("Hate Crimes Occurred against Jewish Individuals")
+plt.xlabel("Year")
+plt.ylabel("Hate Crimes Count")
+plt.grid()
+plt.legend(loc='upper left')
+plt.tight_layout()
+plt.show()
+```
+@fig-jewish_plot shows the number of offences against Jewish individuals on the basis of relgiious bias for each year from 2018-2024. There is a distinct increase in occurrences in 2023.
+
+
+```{python}
+#| label: fig-sexual_orientation_plot
+#| fig-cap: "Sexual Orientation Bias by Month"
+
+#set up
+import polars as pl
+import matplotlib.pyplot as plt
+
+# Load the data
+df = pl.read_csv("sexual_orientation_bias_by_monthname.csv")
+
+years = df["MONTH"].to_numpy()
+counts = df["Count"].to_numpy()
+
+# Plot
+plt.figure(figsize=(10, 5))
+plt.plot(years, counts, marker='o', label="Sexual Orientation Bias by Month")
+plt.title("Hate Crimes Occurred On the Basis of Sexual Orientation")
+plt.xlabel("Month")
+plt.ylabel("Hate Crimes Count")
+plt.grid()
+plt.legend(loc='upper left')
+plt.tight_layout()
+plt.show()
+```
+@fig-sexual_orientation_plot shows the number of offences against 2SLGTBQ+ individuals on the basis of gender bias for each year from 2018-2024. There is a distinct increase in occurrences in 2021.
+```{python}
+#| label: fig-gender_plot
+#| fig-cap: "Gender Bias Yearly Count"
+
+#set up
+import polars as pl
+import matplotlib.pyplot as plt
+
+# Load the data
+df = pl.read_csv("gender_bias_by_year.csv")
+
+years = df["YEAR"].to_numpy()
+counts = df["Count"].to_numpy()
+
+# Plot
+plt.figure(figsize=(10, 5))
+plt.plot(years, counts, marker='o', label="Gender Bias by Year")
+plt.title("Hate Crimes Occurred On the Basis of Gender")
+plt.xlabel("Year")
+plt.ylabel("Hate Crimes Count")
+plt.grid()
+plt.legend(loc='upper left')
+plt.tight_layout()
+plt.show()
+```
+@fig-sexual_orientation_plot shows the number of offences against individuals on the basis of sexual orientation bias for each month of the year from 2018-2024. There is a distinct increase in occurrences in June.
+
+
+
+
+# Discussion {#sec-discussion}
+
+The paper showed who is primarily targeted, where they are primarily targeted and why they are primarily targeted.
+
+The most common motivation for a hate crime is based on religion. The people most affected by crimes committed on the basis of religion is the Jewish community. The second highest motivation for a hate crime is based on race. The people most affected by crimes committed on the basis of race are Black individuals. Black individuals are the victims of 68% of the offences. The third highest motivation for hate crimes is sexual orientation. The people most affected by crimes committed on the basis of sexual orientation are gay individuals. The fourth highest motivation for hate crimes is ethnicity. The people most affected by crimes committed on the basis of ethnicity are Chinese individuals. This is followed by Israeli, Palestinian, and Ukrainian individuals. The fifth highest motivation for a hate crime is based on gender. The people most affected by crimes committed on the basis of gender are transgender Women. The final three biases are language, mental and physical disability, and age. These three make up 0.3% of all offences. Age specifically has had no occurrences over the past six years. 
+
+@fig-composition_chart shows 10 neighbourhoods with the highest offences and the 10 neighbourhoods with the lowest offences. Going through Toronto Open Data Portal, one may look at the features that people tend to believe may contribute to high rates of hate crimes. These may be: immigration, income, and the primary spoken language. Remarkably, when you compare the neighbourhood with the highest occurrence of hate crimes--Young-Bay Corridor-- with the neighbourhood with the lowest occurrence of hate crimes--Parkwoods O'Connor Hills--one finds that both have a mean income of $20,000-40,000/year and both have a primary language of Mandarin. The one difference is that Yonge-Bay Corridor has the highest immigration rate from China while Parkwoods O'Connor Hills has the highest immigration rate from Philippines followed closely by China. One aspect that may contribute to the difference in occurrences is where the neighbourhood is located. The top 10 neighbourhoods tend to be centered around downtown Toronto while the bottom 10 neighbourhoods tend to be closer to the suburbs. An implication may be that the locals do not contribute to the occurrences of hate crimes. Rather, foot traffic and a daily influx of people may be the contributing factor. 
+
+According to @tbl-yearly_count__arrest_preview, an arrest occurred 22% of the time. Although, Toronto Police Service claims there has been an increase in arrests [@TorontoPolice], this is still a low number. @fig-division_chart showed that arrests uniformly occur 20% of the time across all divisions except for D52 where they occur 35% of the time. Notably, this division contains Bay Street Corridor and Waterfront Communities-The Island -- the former of which is the neighbourhood with the highest number of offences. The division with the highest number of occurrences is D32. However, D32 contains 16 neighbourhoods compared to D52 only containing 2 neighbourhoods. 
+
+@fig-race_plot shows the year hate crimes committed against black individuals on the basis of racial bias. There is a distinct increase in 2020 which coincides  with the death of George Floyd and the rise of Black Lives Matter.@fig-ethnicity_plot shows the year hate crimes committed against Chinese individuals on the basis of ethnicity bias. There is a distinct increase in 2020 which coincides  with COVID-19 and the hate that Chinese individuals received as a result. @fig-jewish_plot shows the year hate crimes committed again Jewish individuals on the basis of religious bias. There is a distinct increase in 2023 which coincides  with October 7th, 2023 and the war between Israel and Palestine. @fig-gender_plot shows the yearly counts for hate crimes committed on the basis of gender. 2021 has the highest reported number. 2021 was largely held to be the deadliest year for the transgender community (of whom make up most of the people targeting for hate crimes). This was largely due to the amount of legislation passed against Transgender rights in 2021. @fig-sexual_orientation_plot shows the amount of hate crimes that are committed on the basis of sexual orientation. June is shown to be the month with the highest number of occurrences. June is Pride Month where members of the 2SLGBT+ community celebrate their sexuality.
+
+Jewish and Chinese individuals are victims of people blaming them for actions that are not their own. The increase in hate crimes comes from a place of vengeance  for the perpetrators.
+
+In contrast, Black individuals and members of the 2SLGBT+ community are being targeted as the result of their community being in the spotlight. As more attention is draw to these individuals, so the number of hate crimes committed against them are increased. 
+
+Even though some of these communities are small -- 2SLGBTQ+ community makes up 4% of the Toronto's population -- these are still crimes happening against individuals and it is up to the police force to protect them. 
+
+## Limitations and Future Research
+
+Unfortunately, there is a delay between when the crimes were reported and when the crimes occurred. Additionally, there is an unknown number of crimes that are never reported. Thus, the data is biased. Furthermore, the data was gathered between 2018-2024. However, the data contains occurrences that happened before 2018. Thus, our data is inherently left skewed with some occurrences as early as 2014. Something to note is that an increase in reported hate crimes may not necessarily mean an increase in hate crimes. With a greater education of hate crimes comes a greater awareness of hate crimes which may result in people who would not have previously reported to come forward. The time interval is too limited to make absolute conclusions. After a greater period of time has passed, one may be able to see if eventually the reports start to decrease -- signifying not a decrease in reports but a decrease in crimes. 
+
+Another limitation is that the data does not include occurrences that have been deemed unfounded or classified as hate incidents [@OpenDataPortal].
+
+Future studies could research into the relationship between hate crimes and the neighbourhoods they frequently occur in. Additionally, future studies could be done to test effective measures in preventing hate crimes. 
+
+# References {-}
