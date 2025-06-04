@@ -1,0 +1,21 @@
+occurrence_date,reported_date,division,location_type,bias,primary_offence,neighbourhood,arrest
+2019-01-25,2018-02-09,D43,"Open Area, Park or Parking Lot",RACE_BIAS,Dangerous Operation Motor Vehicle,Danforth (66),No
+2022-01-30,2022-10-11,D32,Streets/Roadways/Highway,LANGUAGE_BIAS,Assault With a Weapon,Willowdale West (37),No
+2024-07-13,2022-02-25,D33,"Educational Institution (Universities, Colleges, Schools, etc.)",GENDER_BIAS,Advocating Genocide,Woodbine Corridor (64),Yes
+2019-10-29,2018-05-18,D23,Streets/Roadways/Highway,LANGUAGE_BIAS,Assault Peace Officer,Mimico-Queensway (160),Yes
+2024-03-22,2024-05-13,D14,Government Building,AGE_BIAS,Aggravated Assault,Newtonbrook West (36),No
+2022-08-12,2019-07-18,D22,Non-Commercial/Non for Profit,SEXUAL_ORIENTATION_BIAS,Murder,Cliffcrest (123),Yes
+2020-12-22,2019-10-15,D13,"Open Area, Park or Parking Lot",AGE_BIAS,Disturbing Religious Worship Or Certain Meetings,Clairlea-Birchmount (120),No
+2018-02-27,2019-04-17,D23,"Educational Institution (Universities, Colleges, Schools, etc.)",LANGUAGE_BIAS,Dangerous Operation Motor Vehicle,Morningside (135),Yes
+2023-11-27,2020-05-03,D43,"House (Townhouse, Retirement Home, Garage, Vehicle, Cottage)",LANGUAGE_BIAS,Robbery,Englemount-Lawrence (32),No
+2018-04-14,2019-03-26,D55,"Open Area, Park or Parking Lot",RELIGION_BIAS,Assault With a Weapon,Bathurst Manor (34),No
+2019-08-29,2020-06-08,D53,Other Commercial / Corporate Places ,MENTAL_OR_PHYSICAL_DISABILITY,Wilful Promotion of Hatred,Victoria Village (43),No
+2021-06-28,2023-09-08,D33,Public Transportation,GENDER_BIAS,Firearms Related Offence,Bayview Woods-Steeles (49),No
+2021-03-19,2021-02-28,D33,Streets/Roadways/Highway,LANGUAGE_BIAS,Arson,Casa Loma (96),Yes
+2024-12-16,2024-06-18,D55,"Educational Institution (Universities, Colleges, Schools, etc.)",LANGUAGE_BIAS,Theft,Broadview North (57),Yes
+2020-11-23,2021-02-23,D31,Streets/Roadways/Highway,LANGUAGE_BIAS,Assault Peace Officer,Yonge-Eglinton (100),No
+2020-11-21,2019-12-09,D52,Religious Place of Worship/Cultural Centre,ETHNICITY_BIAS,Mischief Interfere With Property,Clanton Park (33),Yes
+2019-10-01,2023-07-10,D32,"Educational Institution (Universities, Colleges, Schools, etc.)",AGE_BIAS,Fail To Comply Probation,Maple Leaf (29),No
+2023-01-19,2023-09-28,D42,Government Building,LANGUAGE_BIAS,Harassing Communications,Yonge–Doris (151),No
+2022-02-18,2024-01-13,D33,Non-Commercial/Non for Profit,AGE_BIAS,Assault,Dovercourt Village (172),No
+2018-02-24,2024-03-25,D43,Public Transportation,AGE_BIAS,Aggravated Assault,Lambton Baby Point (114),Yes
